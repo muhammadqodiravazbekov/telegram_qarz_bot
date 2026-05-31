@@ -13,6 +13,7 @@ DB_PATH    = os.environ.get("DB_PATH", "debt.db")
 BOT_TOKEN  = os.environ.get("BOT_TOKEN", "8912188749:AAGCVslE1Ry9kHhOMnpb7ejV_eIF6O37x4w")
 WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://telegram-qarz-bot.onrender.com")
 TG_API     = f"https://api.telegram.org/bot{BOT_TOKEN}"
+ALLOWED_GROUP = -1003618616072
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -37,40 +38,60 @@ async def telegram_webhook(request: Request):
         data = await request.json()
     except:
         return JSONResponse({"ok": True})
-    
+
     message = data.get("message") or data.get("channel_post")
     if not message:
         return JSONResponse({"ok": True})
-    
-    chat_id = message.get("chat", {}).get("id")
-    text    = message.get("text", "")
+
+    chat_id    = message.get("chat", {}).get("id")
+    text       = message.get("text", "")
+    thread_id  = message.get("message_thread_id")
 
     if text in ("/start", "/royhati"):
-        await send_button(chat_id)
+        if chat_id == ALLOWED_GROUP:
+            await send_button(chat_id, thread_id)
+        else:
+            await send_denied(chat_id, thread_id)
     elif text == "/jami":
-        await send_jami(chat_id)
+        if chat_id == ALLOWED_GROUP:
+            await send_jami(chat_id, thread_id)
+        else:
+            await send_denied(chat_id, thread_id)
 
     return JSONResponse({"ok": True})
 
-async def send_button(chat_id):
+async def send_button(chat_id, thread_id=None):
+    payload = {
+        "chat_id": chat_id,
+        "text": "👇 Тугмани босиб реестрни очинг:",
+        "reply_markup": {"inline_keyboard": [[{"text": "📋 Qarzdorlar ro'yxatini ochish", "web_app": {"url": WEBAPP_URL}}]]}
+    }
+    if thread_id:
+        payload["message_thread_id"] = thread_id
     async with httpx.AsyncClient() as client:
-        await client.post(f"{TG_API}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": "👇 Тугмани босиб реестрни очинг:",
-            "reply_markup": {"inline_keyboard": [[{"text": "📋 Qarzdorlar ro'yxatini ochish", "web_app": {"url": WEBAPP_URL}}]]}
-        })
+        await client.post(f"{TG_API}/sendMessage", json=payload)
 
-async def send_jami(chat_id):
+async def send_denied(chat_id, thread_id=None):
+    payload = {"chat_id": chat_id, "text": "❌ Ruxsat yo'q. Bu bot faqat Mini Market guruhi uchun."}
+    if thread_id:
+        payload["message_thread_id"] = thread_id
+    async with httpx.AsyncClient() as client:
+        await client.post(f"{TG_API}/sendMessage", json=payload)
+
+async def send_jami(chat_id, thread_id=None):
     conn = get_db()
     row = conn.execute("SELECT COUNT(DISTINCT person_id), COALESCE(SUM(amount),0) FROM transactions").fetchone()
     conn.close()
     count, total = row[0], int(row[1])
+    payload = {
+        "chat_id": chat_id,
+        "text": f"📊 *Реестр хулосаси*\n\n👥 Қарздорлар: *{count} нафар*\n💰 Умумий қарз: *{total:,} сўм*".replace(",", " "),
+        "parse_mode": "Markdown"
+    }
+    if thread_id:
+        payload["message_thread_id"] = thread_id
     async with httpx.AsyncClient() as client:
-        await client.post(f"{TG_API}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": f"📊 *Реестр хулосаси*\n\n👥 Қарздорлар: *{count} нафар*\n💰 Умумий қарз: *{total:,} сўм*".replace(",", " "),
-            "parse_mode": "Markdown"
-        })
+        await client.post(f"{TG_API}/sendMessage", json=payload)
 
 class PersonCreate(BaseModel):
     name: str
