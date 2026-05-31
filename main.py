@@ -65,17 +65,18 @@ async def telegram_webhook(request: Request):
 
 async def send_button(chat_id, thread_id=None):
     payload = {
-        "chat_id": chat_id,
-        "text": "👇 Тугмани босиб реестрни очинг:",
-        "reply_markup": {
-            "inline_keyboard": [[{
-                "text": "📋 Qarzdorlar ro'yxatini ochish",
-                "web_app": {
-                    "url": WEBAPP_URL
-                }
-            }]]
-        }
+    "chat_id": chat_id,
+    "text": "👇 Тугмани босиб реестрни очинг:",
+    "reply_markup": {
+        "keyboard": [[{
+            "text": "📋 Open Registry",
+            "web_app": {
+                "url": WEBAPP_URL
+            }
+        }]],
+        "resize_keyboard": True
     }
+}
 
     if thread_id:
         payload["message_thread_id"] = thread_id
