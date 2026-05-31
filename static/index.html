@@ -1,270 +1,380 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Qarzdorlar</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --gold:#c8a96e; --gold-bg:rgba(200,169,110,0.10); --gold-br:rgba(200,169,110,0.20);
-      --bg:#0f1117; --bg2:#161b24; --bg3:#1e2330; --border:rgba(255,255,255,0.07);
-      --text:#e2d9c8; --muted:#6b7280; --red:#ef4444; --orange:#f97316;
-      --yellow:#eab308; --green:#22c55e; --gray:#64748b;
-    }
-    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; min-height:100vh; -webkit-tap-highlight-color:transparent; overflow-x:hidden; }
-    .view { display:none; flex-direction:column; height:100vh; }
-    .view.active { display:flex; }
-    .header { padding:14px 16px 10px; background:var(--bg); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
-    .header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-    .header-title { font-size:17px; font-weight:700; letter-spacing:-0.01em; }
-    .header-sub { font-size:12px; color:var(--muted); }
-    .header-back { background:none; border:none; color:var(--gold); font-size:22px; cursor:pointer; padding:2px 10px 2px 0; line-height:1; }
-    .search-wrap { position:relative; }
-    .search-input { width:100%; padding:9px 36px 9px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:15px; outline:none; }
-    .search-input:focus { border-color:var(--gold-br); }
-    .search-clear { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; display:none; }
-    .stats-bar { display:flex; gap:8px; padding:10px 16px 2px; overflow-x:auto; scrollbar-width:none; }
-    .stats-bar::-webkit-scrollbar { display:none; }
-    .stat-chip { background:var(--gold-bg); border:1px solid var(--gold-br); border-radius:8px; padding:8px 12px; white-space:nowrap; flex-shrink:0; }
-    .stat-chip-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
-    .stat-chip-value { font-size:13px; font-weight:700; color:var(--gold); margin-top:2px; }
-    .scroll-area { flex:1; overflow-y:auto; padding:10px 16px 90px; }
-    .person-card { display:flex; align-items:center; gap:10px; padding:11px 13px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; margin-bottom:7px; cursor:pointer; transition:background 0.12s; }
-    .person-card:active { background:var(--bg3); }
-    .person-dot { width:4px; height:34px; border-radius:2px; flex-shrink:0; }
-    .person-info { flex:1; min-width:0; }
-    .person-name { font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .person-meta { font-size:11px; color:var(--muted); margin-top:2px; }
-    .person-amount { font-size:15px; font-weight:700; text-align:right; white-space:nowrap; }
-    .person-unit { font-size:10px; color:var(--muted); text-align:right; margin-top:1px; }
-    .fab { position:fixed; bottom:22px; right:18px; width:54px; height:54px; border-radius:50%; background:var(--gold); color:var(--bg); font-size:28px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(200,169,110,0.45); z-index:20; transition:transform 0.12s; }
-    .fab:active { transform:scale(0.94); }
-    .add-bar { padding:10px 14px; background:var(--gold-bg); border-bottom:1px solid var(--gold-br); display:flex; gap:7px; align-items:center; }
-    .inp { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:9px 11px; color:var(--text); font-size:15px; outline:none; }
-    .inp:focus { border-color:var(--gold-br); }
-    .inp-amount { width:110px; }
-    .inp-note { flex:1; }
-    .add-btn { background:var(--gold); color:var(--bg); border:none; border-radius:8px; padding:9px 14px; font-size:14px; font-weight:700; cursor:pointer; white-space:nowrap; }
-    .add-btn:disabled { opacity:0.5; }
-    .tx-item { display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--border); }
-    .tx-item:last-child { border-bottom:none; }
-    .tx-badge { width:36px; height:36px; border-radius:8px; flex-shrink:0; background:rgba(239,68,68,0.12); display:flex; align-items:center; justify-content:center; font-size:14px; }
-    .tx-info { flex:1; min-width:0; }
-    .tx-amount { font-size:14px; font-weight:700; color:var(--red); }
-    .tx-meta { font-size:11px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .tx-del { background:none; border:none; color:rgba(255,255,255,0.15); font-size:20px; cursor:pointer; padding:4px 6px; line-height:1; }
-    .tx-del:active { color:var(--red); }
-    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:40; align-items:flex-end; }
-    .modal-backdrop.open { display:flex; }
-    .modal { width:100%; background:#1a1f2d; border-radius:20px 20px 0 0; padding:20px 18px 38px; }
-    .modal-handle { width:40px; height:4px; border-radius:2px; background:var(--border); margin:0 auto 18px; }
-    .modal-title { font-size:17px; font-weight:700; margin-bottom:14px; }
-    .modal-inp { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-size:16px; outline:none; margin-bottom:10px; }
-    .modal-inp:focus { border-color:var(--gold-br); }
-    .modal-submit { width:100%; background:var(--gold); color:var(--bg); border:none; border-radius:10px; padding:13px; font-size:16px; font-weight:700; cursor:pointer; }
-    .legend { display:flex; flex-wrap:wrap; gap:8px 14px; padding:8px 16px 4px; }
-    .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
-    .legend-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
-    .empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
-    .loading-state { text-align:center; padding:40px; color:var(--muted); }
-    .rank-badge { font-size:10px; font-weight:700; background:var(--gold-bg); color:var(--gold); border-radius:4px; padding:2px 6px; margin-left:6px; vertical-align:middle; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Qarzdorlar</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f5f5f0;--card:#ffffff;--border:#e8e8e4;--text:#1a1a1a;--muted:#9a9a94;
+  --accent:#1a1a1a;--red:#e63946;--green:#2d6a4f;--orange:#e07b39;
+  --gold:#b5862a;--radius:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* VIEWS */
+.view{display:none;flex-direction:column;min-height:100vh}
+.view.active{display:flex}
+
+/* HEADER */
+.hdr{padding:16px 16px 0;background:var(--bg);position:sticky;top:0;z-index:10}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hdr-title{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+.hdr-sub{font-size:13px;color:var(--muted);margin-top:1px}
+.back-btn{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px 8px 4px 0}
+
+/* SEARCH */
+.search-box{position:relative;margin-bottom:12px}
+.search-box input{width:100%;padding:11px 40px 11px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;font-size:15px;color:var(--text);outline:none;transition:border-color .15s}
+.search-box input:focus{border-color:#aaa}
+.search-box .s-icon{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;cursor:pointer;border:none;background:none}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 12px}
+.stat{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.stat-v{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.stat-v.red{color:var(--red)}
+.stat-v.green{color:var(--green)}
+
+/* FILTER TABS */
+.filters{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.ftab{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s}
+.ftab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* LIST */
+.list{flex:1;padding:0 16px 100px}
+.person-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.person-item:last-child{border-bottom:none}
+.avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;color:#fff}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.p-right{text-align:right;flex-shrink:0}
+.p-amt{font-size:15px;font-weight:700}
+.p-date{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* DETAIL */
+.detail-hero{padding:16px;background:var(--card);border-bottom:1.5px solid var(--border);margin-bottom:12px}
+.detail-name{font-size:20px;font-weight:700;margin-bottom:4px}
+.detail-total{font-size:32px;font-weight:700;letter-spacing:-1px;color:var(--red)}
+.detail-meta{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ADD BAR */
+.add-bar{padding:10px 16px;background:var(--card);border-top:1.5px solid var(--border);position:sticky;bottom:0;z-index:10;display:flex;gap:8px}
+.add-bar input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);outline:none}
+.add-bar input:focus{border-color:#aaa}
+.add-bar .amt-inp{width:110px;flex:none}
+.add-btn{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+
+/* TX ITEMS */
+.tx-wrap{padding:0 16px 120px}
+.tx-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+.tx-item:last-child{border-bottom:none}
+.tx-dot{width:36px;height:36px;border-radius:10px;background:#fef2f2;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tx-info{flex:1;min-width:0}
+.tx-amt{font-size:14px;font-weight:700;color:var(--red)}
+.tx-meta{font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-del{background:none;border:none;color:#ccc;font-size:20px;cursor:pointer;padding:4px 6px}
+.tx-del:active{color:var(--red)}
+
+/* MARK PAID */
+.pay-btn{padding:6px 12px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;font-size:12px;font-weight:700;color:var(--green);cursor:pointer}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:20;transition:transform .12s}
+.fab:active{transform:scale(.93)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;align-items:flex-end}
+.modal-bg.open{display:flex}
+.modal{width:100%;background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px}
+.modal-bar{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 16px}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:14px}
+.modal input{width:100%;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:var(--text);outline:none;margin-bottom:10px}
+.modal input:focus{border-color:#aaa}
+.modal-submit{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer}
+
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:40px;margin-bottom:12px}
+
+/* TIER COLORS */
+.t-red{background:#e63946}
+.t-orange{background:#e07b39}
+.t-yellow{background:#b5862a}
+.t-green{background:#2d6a4f}
+.t-gray{background:#9a9a94}
+
+/* PAID BADGE */
+.paid-badge{font-size:10px;font-weight:700;background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0;border-radius:4px;padding:1px 6px;margin-left:6px}
+</style>
 </head>
 <body>
-<div id="list-view" class="view active">
-  <div class="header">
-    <div class="header-row">
-      <div><div class="header-title">Qarzdorlar 📋</div><div class="header-sub" id="list-sub">Юкланмоқда…</div></div>
+
+<!-- LIST VIEW -->
+<div id="v-list" class="view active">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div><div class="hdr-title">Qarzdorlar</div><div class="hdr-sub" id="list-sub">Yuklanmoqda…</div></div>
     </div>
-    <div class="search-wrap">
-      <input class="search-input" id="search" type="text" placeholder="Исм бўйича қидириш…" oninput="onSearch()" autocomplete="off">
-      <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+    <div class="search-box">
+      <input id="search" type="text" placeholder="Ism bo'yicha qidirish…" oninput="onSearch()" autocomplete="off">
+      <button class="s-icon" onclick="clearSearch()">✕</button>
     </div>
   </div>
-  <div class="stats-bar" id="stats-bar"></div>
-  <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>≥ 400К</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>200–400К</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>100–200К</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>50–100К</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#64748b"></div>< 50К</div>
+  <div class="stats" id="stats"></div>
+  <div class="filters">
+    <button class="ftab active" onclick="setFilter('all',this)">Hammasi</button>
+    <button class="ftab" onclick="setFilter('high',this)">≥ 200K</button>
+    <button class="ftab" onclick="setFilter('mid',this)">50–200K</button>
+    <button class="ftab" onclick="setFilter('low',this)">&lt; 50K</button>
+    <button class="ftab" onclick="setFilter('paid',this)">To'langan ✓</button>
   </div>
-  <div class="scroll-area" id="person-list"><div class="loading-state">Юкланмоқда…</div></div>
+  <div class="list" id="person-list"><div class="empty"><div class="empty-icon">📋</div>Yuklanmoqda…</div></div>
   <button class="fab" onclick="openModal()">+</button>
 </div>
 
-<div id="detail-view" class="view">
-  <div class="header">
-    <div class="header-row">
-      <button class="header-back" onclick="closeDetail()">←</button>
-      <div style="flex:1"><div class="header-title" id="detail-name" style="font-size:15px"></div><div class="header-sub" id="detail-meta"></div></div>
-      <div id="detail-total" style="font-size:16px;font-weight:700;color:var(--gold);white-space:nowrap"></div>
+<!-- DETAIL VIEW -->
+<div id="v-detail" class="view">
+  <div class="hdr">
+    <div class="hdr-top">
+      <button class="back-btn" onclick="closeDetail()">←</button>
+      <div style="flex:1"><div class="hdr-title" id="d-name" style="font-size:17px"></div></div>
+      <button class="pay-btn" onclick="markPaid()">✓ To'landi</button>
     </div>
   </div>
-  <div class="add-bar">
-    <input class="inp inp-amount" id="inp-amount" type="number" placeholder="Сумма" inputmode="numeric" min="1">
-    <input class="inp inp-note" id="inp-note" type="text" placeholder="Изох">
-    <button class="add-btn" id="add-btn" onclick="submitTx()">＋</button>
+  <div class="detail-hero">
+    <div class="detail-total" id="d-total"></div>
+    <div class="detail-meta" id="d-meta"></div>
   </div>
-  <div class="scroll-area" id="tx-list"><div class="loading-state">Юкланмоқда…</div></div>
+  <div class="tx-wrap" id="tx-list"><div class="empty">Yuklanmoqda…</div></div>
+  <div class="add-bar">
+    <input class="amt-inp" id="inp-amt" type="number" placeholder="Summa" inputmode="numeric">
+    <input id="inp-note" type="text" placeholder="Izoh (ixtiyoriy)">
+    <button class="add-btn" onclick="submitTx()">+</button>
+  </div>
 </div>
 
-<div class="modal-backdrop" id="modal" onclick="onBackdropClick(event)">
+<!-- MODAL: ADD PERSON -->
+<div class="modal-bg" id="modal" onclick="bgClick(event)">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Янги шахс қўшиш</div>
-    <input class="modal-inp" id="m-name" type="text" placeholder="Исм" autocomplete="off">
-    <input class="modal-inp" id="m-amount" type="number" placeholder="Дастлабки сумма (ихтиёрий)" inputmode="numeric" min="0">
-    <button class="modal-submit" onclick="submitNewPerson()">Қўшиш</button>
+    <div class="modal-bar"></div>
+    <div class="modal-title">Yangi qarzdor</div>
+    <input id="m-name" type="text" placeholder="Ism (masalan: Zulfiya xola)">
+    <input id="m-amt" type="number" placeholder="Boshlang'ich summa (ixtiyoriy)" inputmode="numeric">
+    <button class="modal-submit" onclick="submitPerson()">Qo'shish</button>
   </div>
 </div>
 
 <script>
 const tg = window.Telegram?.WebApp;
 tg?.expand(); tg?.ready();
-const tgUser = tg?.initDataUnsafe?.user;
-const callerName = tgUser ? (tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '')) : 'Номаълум';
+const me = tg?.initDataUnsafe?.user;
+const caller = me ? (me.first_name + (me.last_name ? ' ' + me.last_name : '')) : 'Sotuvchi';
 
-let persons = [], currentId = null, currentTotal = 0;
-const fmt    = n => Number(n).toLocaleString('ru-RU') + ' сўм';
-const fmtNum = n => Number(n).toLocaleString('ru-RU');
-function tierColor(t) {
-  if (t>=400000) return '#ef4444'; if (t>=200000) return '#f97316';
-  if (t>=100000) return '#eab308'; if (t>=50000)  return '#22c55e'; return '#64748b';
+let persons=[], currentId=null, currentTotal=0, filter='all', query='';
+
+const fmt = n => Number(n).toLocaleString('ru-RU');
+const fmtS = n => fmt(n) + ' so\'m';
+
+function tierClass(t){
+  if(t>=200000) return 't-red';
+  if(t>=100000) return 't-orange';
+  if(t>=50000)  return 't-yellow';
+  if(t>0)       return 't-green';
+  return 't-gray';
 }
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function fmtDate(dt) { if (!dt) return ''; const d=new Date(dt.endsWith('Z')?dt:dt+'Z'); return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}); }
+function initials(name){
+  return name.trim().split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(dt){
+  if(!dt) return '';
+  const d=new Date(dt.endsWith('Z')?dt:dt+'Z');
+  return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
 
-const api = {
-  get:    url      => fetch(url).then(r=>r.json()),
-  post:   (url,b)  => fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),
-  delete: url      => fetch(url,{method:'DELETE'}),
+const api={
+  get: u=>fetch(u).then(r=>r.json()),
+  post:(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),
+  del: u=>fetch(u,{method:'DELETE'}),
 };
 
-function showView(id) { document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
-async function loadPersons() {
-  try { persons = await api.get('/api/persons'); renderList(persons); renderStats(persons); }
-  catch { document.getElementById('person-list').innerHTML='<div class="empty">Уланишда хато.</div>'; }
+async function load(){
+  try{
+    persons=await api.get('/api/persons');
+    renderStats(); renderList();
+  }catch{document.getElementById('person-list').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div>Ulanishda xato</div>';}
 }
 
-function renderStats(data) {
-  const total=data.reduce((s,p)=>s+p.total,0), count=data.length;
-  const avg=count?Math.round(total/count):0, big=data.filter(p=>p.total>=200000).length;
-  document.getElementById('list-sub').textContent=`${count} нафар · ${fmt(total)}`;
-  document.getElementById('stats-bar').innerHTML=[
-    {label:'Жами қарз',value:fmt(total)},{label:'Қарздорлар',value:count+' нафар'},
-    {label:'Ўртача',value:fmt(avg)},{label:'≥ 200К',value:big+' та'},
-  ].map(s=>`<div class="stat-chip"><div class="stat-chip-label">${s.label}</div><div class="stat-chip-value">${s.value}</div></div>`).join('');
+function renderStats(){
+  const total=persons.reduce((s,p)=>s+p.total,0);
+  const count=persons.length;
+  const paid=persons.filter(p=>p.total<=0).length;
+  document.getElementById('list-sub').textContent=`${count} nafar · ${fmtS(total)}`;
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="stat-l">Umumiy qarz</div><div class="stat-v red">${fmt(total)}</div></div>
+    <div class="stat"><div class="stat-l">Qarzdorlar</div><div class="stat-v">${count-paid} / ${count}</div></div>`;
 }
 
-function renderList(data) {
+function applyFilter(data){
+  let d=data;
+  if(query) d=d.filter(p=>p.name.toLowerCase().includes(query));
+  if(filter==='high') d=d.filter(p=>p.total>=200000);
+  else if(filter==='mid') d=d.filter(p=>p.total>=50000&&p.total<200000);
+  else if(filter==='low') d=d.filter(p=>p.total>0&&p.total<50000);
+  else if(filter==='paid') d=d.filter(p=>p.total<=0);
+  return d;
+}
+
+function renderList(){
+  const data=applyFilter(persons);
   const el=document.getElementById('person-list');
-  if (!data.length) { el.innerHTML='<div class="empty">Натижа топилмади</div>'; return; }
-  el.innerHTML=data.map((p,i)=>`
-    <div class="person-card" onclick="openDetail(${p.id})">
-      <div class="person-dot" style="background:${tierColor(p.total)}"></div>
-      <div class="person-info">
-        <div class="person-name">${escHtml(p.name)}${i<3?`<span class="rank-badge">${['🥇','🥈','🥉'][i]}</span>`:''}</div>
-        <div class="person-meta">${p.tx_count} та транзакция</div>
+  if(!data.length){el.innerHTML='<div class="empty"><div class="empty-icon">🔍</div>Natija topilmadi</div>';return;}
+  el.innerHTML=data.map((p,i)=>{
+    const isPaid=p.total<=0;
+    return `<div class="person-item" onclick="openDetail(${p.id})">
+      <div class="avatar ${tierClass(p.total)}">${initials(p.name)}</div>
+      <div class="p-info">
+        <div class="p-name">${esc(p.name)}${isPaid?'<span class="paid-badge">✓</span>':''}</div>
+        <div class="p-meta">${p.tx_count} ta tranzaksiya</div>
       </div>
-      <div><div class="person-amount" style="color:${tierColor(p.total)}">${fmtNum(p.total)}</div><div class="person-unit">сўм</div></div>
-    </div>`).join('');
+      <div class="p-right">
+        <div class="p-amt" style="color:${isPaid?'var(--green)':'var(--red)'}">${fmt(p.total)}</div>
+        <div class="p-date">so'm</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function onSearch() {
-  const q=document.getElementById('search').value.toLowerCase();
-  document.getElementById('search-clear').style.display=q?'block':'none';
-  renderList(persons.filter(p=>p.name.toLowerCase().includes(q)));
+function setFilter(f,btn){
+  filter=f;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
 }
-function clearSearch() { document.getElementById('search').value=''; document.getElementById('search-clear').style.display='none'; renderList(persons); }
+function onSearch(){query=document.getElementById('search').value.toLowerCase().trim();renderList();}
+function clearSearch(){document.getElementById('search').value='';query='';renderList();}
 
-async function openDetail(id) {
-  currentId=id; const p=persons.find(x=>x.id===id); if(!p) return;
+async function openDetail(id){
+  currentId=id;
+  const p=persons.find(x=>x.id===id);
+  if(!p) return;
   currentTotal=p.total;
-  document.getElementById('detail-name').textContent=p.name;
-  document.getElementById('detail-meta').textContent=`${p.tx_count} та транзакция`;
-  document.getElementById('detail-total').textContent=fmt(p.total);
-  document.getElementById('inp-amount').value=''; document.getElementById('inp-note').value='';
-  showView('detail-view');
-  if (tg?.BackButton) { tg.BackButton.show(); tg.BackButton.onClick(closeDetail); }
-  await loadTxList(id);
+  document.getElementById('d-name').textContent=p.name;
+  document.getElementById('d-total').textContent=fmtS(p.total);
+  document.getElementById('d-meta').textContent=`${p.tx_count} ta tranzaksiya`;
+  document.getElementById('inp-amt').value='';
+  document.getElementById('inp-note').value='';
+  showView('v-detail');
+  if(tg?.BackButton){tg.BackButton.show();tg.BackButton.onClick(closeDetail);}
+  await loadTx(id);
 }
 
-function closeDetail() {
-  if (tg?.BackButton) tg.BackButton.hide();
-  showView('list-view');
-  api.get('/api/persons').then(data=>{ persons=data; renderList(data); renderStats(data); }).catch(()=>{});
+function closeDetail(){
+  if(tg?.BackButton) tg.BackButton.hide();
+  showView('v-list');
+  api.get('/api/persons').then(d=>{persons=d;renderStats();renderList();}).catch(()=>{});
 }
 
-async function loadTxList(id) {
-  const el=document.getElementById('tx-list'); el.innerHTML='<div class="loading-state">Юкланмоқда…</div>';
-  try {
+async function loadTx(id){
+  const el=document.getElementById('tx-list');
+  el.innerHTML='<div class="empty">Yuklanmoqda…</div>';
+  try{
     const data=await api.get(`/api/persons/${id}/transactions`);
-    if (!data.length) { el.innerHTML='<div class="empty">Транзакциялар йўқ</div>'; return; }
+    if(!data.length){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>Tranzaksiyalar yo\'q</div>';return;}
     el.innerHTML=data.map(tx=>`
       <div class="tx-item" id="tx-${tx.id}">
-        <div class="tx-badge">💸</div>
+        <div class="tx-dot">💸</div>
         <div class="tx-info">
-          <div class="tx-amount">− ${fmtNum(tx.amount)} сўм</div>
+          <div class="tx-amt">${tx.amount<0?'<span style="color:var(--green)">+'+fmt(-tx.amount)+'</span>':'−'+fmt(tx.amount)} so'm</div>
           <div class="tx-meta">${[tx.note,tx.added_by,fmtDate(tx.created_at)].filter(Boolean).join(' · ')}</div>
         </div>
-        <button class="tx-del" onclick="deleteTx(${tx.id},${tx.amount})">×</button>
+        <button class="tx-del" onclick="delTx(${tx.id},${tx.amount})">×</button>
       </div>`).join('');
-  } catch { el.innerHTML='<div class="empty">Хато юз берди</div>'; }
+  }catch{el.innerHTML='<div class="empty">Xato yuz berdi</div>';}
 }
 
-async function submitTx() {
-  const amtStr=document.getElementById('inp-amount').value.trim(), note=document.getElementById('inp-note').value.trim();
-  const amt=Number(amtStr); if (!amtStr||isNaN(amt)||amt<=0) { document.getElementById('inp-amount').focus(); return; }
-  const btn=document.getElementById('add-btn'); btn.disabled=true;
-  try {
-    const res=await api.post('/api/transactions',{person_id:currentId,amount:amt,note:note||null,added_by:callerName});
-    if (!res.ok) throw new Error();
-    document.getElementById('inp-amount').value=''; document.getElementById('inp-note').value='';
-    currentTotal+=amt; document.getElementById('detail-total').textContent=fmt(currentTotal);
-    await loadTxList(currentId);
-    const p=persons.find(x=>x.id===currentId); if(p){p.total=currentTotal;p.tx_count+=1;}
-  } catch { alert('Хато юз берди.'); }
-  btn.disabled=false;
+async function submitTx(){
+  const amt=Number(document.getElementById('inp-amt').value);
+  const note=document.getElementById('inp-note').value.trim();
+  if(!amt||amt<=0){document.getElementById('inp-amt').focus();return;}
+  try{
+    const res=await api.post('/api/transactions',{person_id:currentId,amount:amt,note:note||null,added_by:caller});
+    if(!res.ok) throw new Error();
+    document.getElementById('inp-amt').value='';
+    document.getElementById('inp-note').value='';
+    currentTotal+=amt;
+    document.getElementById('d-total').textContent=fmtS(currentTotal);
+    const p=persons.find(x=>x.id===currentId);
+    if(p){p.total=currentTotal;p.tx_count+=1;}
+    await loadTx(currentId);
+  }catch{alert('Xato yuz berdi.');}
 }
 
-async function deleteTx(txId,amount) {
-  if (!confirm('Ушбу транзакцияни ўчириш?')) return;
-  try {
-    await api.delete(`/api/transactions/${txId}`);
+async function delTx(txId,amount){
+  if(!confirm('Bu tranzaksiyani o\'chirish?')) return;
+  try{
+    await api.del(`/api/transactions/${txId}`);
     document.getElementById(`tx-${txId}`)?.remove();
-    currentTotal-=amount; document.getElementById('detail-total').textContent=fmt(currentTotal);
-    const p=persons.find(x=>x.id===currentId); if(p){p.total=currentTotal;p.tx_count-=1;}
+    currentTotal-=amount;
+    document.getElementById('d-total').textContent=fmtS(currentTotal);
+    const p=persons.find(x=>x.id===currentId);
+    if(p){p.total=currentTotal;p.tx_count-=1;}
     const el=document.getElementById('tx-list');
-    if (!el.querySelector('.tx-item')) el.innerHTML='<div class="empty">Транзакциялар йўқ</div>';
-  } catch { alert('Хато юз берди.'); }
+    if(!el.querySelector('.tx-item')) el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>Tranzaksiyalar yo\'q</div>';
+  }catch{alert('Xato yuz berdi.');}
 }
 
-function openModal() { document.getElementById('m-name').value=''; document.getElementById('m-amount').value=''; document.getElementById('modal').classList.add('open'); setTimeout(()=>document.getElementById('m-name').focus(),80); }
-function onBackdropClick(e) { if(e.target===document.getElementById('modal')) document.getElementById('modal').classList.remove('open'); }
+async function markPaid(){
+  if(!confirm('Bu odamni to\'liq to\'langan deb belgilash?')) return;
+  if(currentTotal<=0){alert('Qarz allaqachon 0');return;}
+  try{
+    const res=await api.post('/api/transactions',{person_id:currentId,amount:-currentTotal,note:"To'liq to'landi",added_by:caller});
+    if(!res.ok) throw new Error();
+    currentTotal=0;
+    document.getElementById('d-total').textContent=fmtS(0);
+    const p=persons.find(x=>x.id===currentId);
+    if(p){p.total=0;p.tx_count+=1;}
+    await loadTx(currentId);
+  }catch{alert('Xato yuz berdi.');}
+}
 
-async function submitNewPerson() {
-  const name=document.getElementById('m-name').value.trim(), amt=Number(document.getElementById('m-amount').value.trim())||0;
-  if (!name) { document.getElementById('m-name').focus(); return; }
-  try {
-    const res=await api.post('/api/persons',{name}); if (!res.ok){const err=await res.json();alert(err.detail||'Хато');return;}
+function openModal(){
+  document.getElementById('m-name').value='';
+  document.getElementById('m-amt').value='';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-name').focus(),80);
+}
+function bgClick(e){if(e.target===document.getElementById('modal')) document.getElementById('modal').classList.remove('open');}
+
+async function submitPerson(){
+  const name=document.getElementById('m-name').value.trim();
+  const amt=Number(document.getElementById('m-amt').value)||0;
+  if(!name){document.getElementById('m-name').focus();return;}
+  try{
+    const res=await api.post('/api/persons',{name});
+    if(!res.ok){const e=await res.json();alert(e.detail||'Xato');return;}
     const person=await res.json();
-    if (amt>0) await api.post('/api/transactions',{person_id:person.id,amount:amt,note:'Дастлабки сумма',added_by:callerName});
+    if(amt>0) await api.post('/api/transactions',{person_id:person.id,amount:amt,note:'Boshlang\'ich qarz',added_by:caller});
     document.getElementById('modal').classList.remove('open');
-    await loadPersons();
-  } catch { alert('Хато юз берди.'); }
+    await load();
+  }catch{alert('Xato yuz berdi.');}
 }
 
 document.addEventListener('keydown',e=>{
-  if (e.key!=='Enter') return;
-  if (document.getElementById('detail-view').classList.contains('active')) submitTx();
-  if (document.getElementById('modal').classList.contains('open')) submitNewPerson();
+  if(e.key!=='Enter') return;
+  if(document.getElementById('v-detail').classList.contains('active')) submitTx();
+  if(document.getElementById('modal').classList.contains('open')) submitPerson();
 });
 
-loadPersons();
+load();
 </script>
 </body>
 </html>
