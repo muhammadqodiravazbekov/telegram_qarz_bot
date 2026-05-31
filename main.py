@@ -1,10 +1,9 @@
-from fastapi import FastAPI, HTTPException, Request, Header
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-import sqlite3, os, httpx, re, hmac, hashlib, json
-from urllib.parse import parse_qsl
+import sqlite3, os, httpx, re
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -25,22 +24,6 @@ def init():
     c.commit(); c.close()
 init()
 
-# Telegram WebApp xavfsizlik tekshiruvi (Professional himoya)
-def verify_telegram(init_data: str) -> dict:
-    if not init_data:
-        raise HTTPException(status_code=401, detail="Ruxsat berilmagan")
-    try:
-        vals = dict(parse_qsl(init_data))
-        hash_val = vals.pop("hash", None)
-        data_check_string = "\n".join([f"{k}={v}" for k, v in sorted(vals.items())])
-        secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
-        calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
-        if calculated_hash != hash_val:
-            raise HTTPException(status_code=401, detail="Xavfsizlik xatosi")
-        return json.loads(vals.get("user", "{}"))
-    except:
-        raise HTTPException(status_code=401, detail="Validatsiya xatosi")
-
 async def tgsend(chat_id,payload,thread_id=None):
     if thread_id: payload["message_thread_id"]=thread_id
     async with httpx.AsyncClient() as cl: await cl.post(f"{TG}/sendMessage",json=payload)
@@ -58,12 +41,13 @@ async def webhook(req: Request):
     txt=msg.get("text","").split("@")[0].strip()
     tid=msg.get("message_thread_id")
     if cid!=ALLOWED_GROUP: return {"ok":True}
+    
     if txt in("/start","/royhati"):
         await tgsend(cid,{"chat_id":cid,"text":"📋 Quyidagi tugma orqali dasturni oching:","reply_markup":{"inline_keyboard":[[{"text":"💻 Dasturni ochish","web_app":{"url":WEBAPP_URL}}]]}},tid)
     elif txt=="/jami":
         c=db()
         rows=c.execute("SELECT p.name,COALESCE(SUM(t.amount),0)as tot,GROUP_CONCAT(t.amount,'|')as bd FROM persons p LEFT JOIN transactions t ON p.id=t.person_id GROUP BY p.id HAVING tot>0 ORDER BY tot DESC LIMIT 30").fetchall()
-        grand=c.execute("SELECT COALESCE(SUM(amount),0)FROM transactions WHERE amount>0").fetchone()[0]
+        grand=c.execute("SELECT COALESCE(SUM(amount),0)FROM transactions WHERE amount>0").fetchone()[0] or 0
         c.close()
         lines=[]
         for r in rows:
@@ -90,7 +74,7 @@ def lp():
     return out
 
 @app.post("/api/persons",status_code=201)
-def cp(b:PC, x_tg_init_data: Optional[str] = Header(None)):
+def cp(b:PC):
     name=b.name.strip()
     if not name: raise HTTPException(400,"Ism bo'sh")
     c=db()
@@ -99,7 +83,7 @@ def cp(b:PC, x_tg_init_data: Optional[str] = Header(None)):
     c.close(); return{"id":pid,"name":name}
 
 @app.delete("/api/persons/{pid}")
-def dp(pid:int, x_tg_init_data: Optional[str] = Header(None)):
+def dp(pid:int):
     c=db(); c.execute("DELETE FROM transactions WHERE person_id=?",(pid,)); c.execute("DELETE FROM persons WHERE id=?",(pid,)); c.commit(); c.close(); return{"ok":True}
 
 @app.get("/api/persons/{pid}/transactions")
@@ -107,26 +91,26 @@ def gt(pid:int):
     c=db(); rows=c.execute("SELECT * FROM transactions WHERE person_id=? ORDER BY created_at DESC",(pid,)).fetchall(); c.close(); return[dict(r)for r in rows]
 
 @app.post("/api/transactions",status_code=201)
-def at(b:TC, x_tg_init_data: Optional[str] = Header(None)):
+def at(b:TC):
     c=db()
     if not c.execute("SELECT 1 FROM persons WHERE id=?",(b.person_id,)).fetchone():
         c.close(); raise HTTPException(404,"Topilmadi")
     cur=c.execute("INSERT INTO transactions(person_id,amount,note,added_by)VALUES(?,?,?,?)",(b.person_id,b.amount,b.note,b.added_by)); c.commit(); tid=cur.lastrowid; c.close(); return{"id":tid}
 
 @app.put("/api/transactions/{tid}")
-def ut(tid:int, b:TU, x_tg_init_data: Optional[str] = Header(None)):
+def ut(tid:int, b:TU):
     c=db(); c.execute("UPDATE transactions SET note=? WHERE id=?",(b.note, tid)); c.commit(); c.close(); return{"ok":True}
 
 @app.delete("/api/transactions/{tid}")
-def dt(tid:int, x_tg_init_data: Optional[str] = Header(None)):
+def dt(tid:int):
     c=db(); c.execute("DELETE FROM transactions WHERE id=?",(tid,)); c.commit(); c.close(); return{"ok":True}
 
 @app.get("/api/stats")
 def stats():
     c=db()
-    total=c.execute("SELECT COALESCE(SUM(amount),0)FROM transactions WHERE amount>0").fetchone()[0]
-    paid=c.execute("SELECT COUNT(DISTINCT person_id)FROM(SELECT person_id,SUM(amount)as s FROM transactions GROUP BY person_id HAVING s<=0)").fetchone()[0]
-    active=c.execute("SELECT COUNT(DISTINCT person_id)FROM(SELECT person_id,SUM(amount)as s FROM transactions GROUP BY person_id HAVING s>0)").fetchone()[0]
+    total=c.execute("SELECT COALESCE(SUM(amount),0)FROM transactions WHERE amount>0").fetchone()[0] or 0
+    paid=c.execute("SELECT COUNT(DISTINCT person_id)FROM(SELECT person_id,SUM(amount)as s FROM transactions GROUP BY person_id HAVING s<=0)").fetchone()[0] or 0
+    active=c.execute("SELECT COUNT(DISTINCT person_id)FROM(SELECT person_id,SUM(amount)as s FROM transactions GROUP BY person_id HAVING s>0)").fetchone()[0] or 0
     top=c.execute("SELECT p.name,SUM(t.amount)as tot FROM persons p JOIN transactions t ON p.id=t.person_id GROUP BY p.id ORDER BY tot DESC LIMIT 3").fetchall()
     c.close()
     return{"total":total,"paid":paid,"active":active,"top":[dict(r)for r in top]}
