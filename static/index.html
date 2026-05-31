@@ -3,174 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Control</title>
+<title>Qarzdorlar</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root {
-  --bg: #f4f4f7; --card: #ffffff; --border: rgba(0,0,0,0.04);
-  --t: #000000; --m: #8e8e93; --r: #ff3b30; --g: #34c759;
-  --a: #007ff5; --rad: 14px; --shadow: 0 4px 20px rgba(0,0,0,0.03);
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0b0d; --card: #16161a; --border: rgba(255,255,255,0.05);
-    --t: #ffffff; --m: #7c7c80; --r: #ff453a; --g: #32d74b;
-    --a: #0a84ff; --shadow: 0 4px 25px rgba(0,0,0,0.2);
-  }
-}
-body{background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;overflow-x:hidden}
-.view{display:none;flex-direction:column;min-height:100vh;animation: fadeIn 0.2s ease}.view.active{display:flex}
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+:root{--bg:#f7f7f5;--card:#fff;--border:#ebebе8;--t:#111;--m:#999;--r:#dc3545;--g:#198754;--a:#111;--rad:12px}
+body{background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,sans-serif;min-height:100vh}
+.view{display:none;flex-direction:column;min-height:100vh}.view.active{display:flex}
 
-/* MINIMAL NAV */
-.nav{padding:20px 16px 10px;background:var(--bg);position:sticky;top:0;z-index:9}
-.nav-row{display:flex;align-items:center;justify-content:space-between}
-.nav-title{font-size:24px;font-weight:800;letter-spacing:-0.6px}
-.nav-sub{font-size:13px;color:var(--m);margin-top:2px}
-.icon-btn{background:var(--card);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;box-shadow:var(--shadow);color:var(--t)}
-.nav-back{background:none;border:none;font-size:24px;color:var(--t);cursor:pointer;margin-right:12px;font-weight:300}
+/* NAV */
+.nav{padding:14px 16px 0;background:var(--bg);position:sticky;top:0;z-index:9}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.nav-title{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.nav-sub{font-size:12px;color:var(--m)}
+.nav-back{background:none;border:none;font-size:18px;color:var(--m);cursor:pointer;padding:2px 8px 2px 0}
+.nav-actions{display:flex;gap:8px}
+.icon-btn{background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;color:var(--t)}
 
 /* SEARCH */
-.search{margin:12px 16px 6px}
-.search input{width:100%;padding:12px 16px;background:var(--card);border:none;border-radius:12px;font-size:15px;color:var(--t);outline:none;box-shadow:var(--shadow)}
-.search input::placeholder{color:var(--m);opacity:0.7}
+.search{position:relative;margin-bottom:10px}
+.search input{width:100%;padding:10px 36px 10px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--t);outline:none}
+.search input:focus{border-color:#bbb}
+.search .clr{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--m);font-size:16px;cursor:pointer}
 
-/* STATS CARDS */
-.stats{display:flex;gap:10px;padding:12px 16px;overflow-x:auto;scrollbar-width:none}.stats::-webkit-scrollbar{display:none}
-.sc{background:var(--card);border-radius:var(--rad);padding:14px;flex-shrink:0;min-width:115px;box-shadow:var(--shadow)}
-.sc-l{font-size:11px;color:var(--m);font-weight:500;margin-bottom:4px}
-.sc-v{font-size:16px;font-weight:700;letter-spacing:-0.3px}
+/* STATS ROW */
+.stats{display:flex;gap:8px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.sc{background:var(--card);border:1.5px solid var(--border);border-radius:var(--rad);padding:12px 14px;flex-shrink:0;min-width:120px}
+.sc-l{font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.sc-v{font-size:16px;font-weight:700}
 .sc-v.r{color:var(--r)}.sc-v.g{color:var(--g)}
 
-/* TABS & FILTERS */
-.ftabs{display:flex;gap:6px;padding:6px 16px 12px;overflow-x:auto;scrollbar-width:none}.ftabs::-webkit-scrollbar{display:none}
-.ft{padding:7px 14px;border-radius:30px;border:none;background:var(--card);font-size:13px;font-weight:500;color:var(--m);cursor:pointer;white-space:nowrap;box-shadow:var(--shadow)}
-.ft.on{background:var(--t);color:var(--bg)}
+/* FILTERS */
+.ftabs{display:flex;gap:5px;padding:0 16px 8px;overflow-x:auto;scrollbar-width:none}
+.ftabs::-webkit-scrollbar{display:none}
+.ft{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;color:var(--m);cursor:pointer;white-space:nowrap}
+.ft.on{background:var(--a);color:#fff;border-color:var(--a)}
 
-.sortbar{display:flex;gap:8px;padding:0 16px 14px;align-items:center;font-size:12px;color:var(--m)}
-.sb{background:none;border:none;color:var(--m);font-weight:600;cursor:pointer;font-size:12px}
-.sb.on{color:var(--a)}
-
-/* CLEAN LIST */
-.lst{padding:0 16px 100px}
-.pi{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);margin-bottom:8px;border-radius:var(--rad);cursor:pointer;box-shadow:var(--shadow)}
-.pi:active{opacity:.8}
-.av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
-.av.r{background:linear-gradient(135deg,#ff512f,#dd2476)}
-.av.o{background:linear-gradient(135deg,#ff9900,#ff5b00)}
-.av.g{background:linear-gradient(135deg,#11998e,#38ef7d)}
-.av.x{background:#8e8e93}
+/* LIST */
+.lst{flex:1;padding:0 16px 90px}
+.pi{display:flex;align-items:center;gap:11px;padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .1s}
+.pi:last-child{border-bottom:none}
+.pi:active{opacity:.7}
+.av{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;color:#fff}
+.av.r{background:#dc3545}.av.o{background:#fd7e14}.av.y{background:#b8860b}.av.g{background:#198754}.av.x{background:#aaa}
 .pi-info{flex:1;min-width:0}
-.pi-name{font-size:15px;font-weight:600;letter-spacing:-0.2px;display:flex;align-items:center;gap:4px}
-.pi-bd{font-size:12px;color:var(--m);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pi-amt{font-size:16px;font-weight:700;letter-spacing:-0.3px}
-.badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px}
-.badge.paid{background:rgba(52,199,89,0.15);color:var(--g)}
+.pi-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-bd{font-size:11px;color:var(--m);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-r{text-align:right;flex-shrink:0}
+.pi-amt{font-size:14px;font-weight:700}
+.pi-u{font-size:10px;color:var(--m);margin-top:1px}
+.badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle}
+.badge.paid{background:#d1fae5;color:#065f46}
+.badge.top{background:#fef3c7;color:#92400e}
 
-/* DETAIL VIEW HERO */
-.d-hero{padding:24px 16px;text-align:center;background:var(--bg)}
-.d-amt{font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+/* SORT BAR */
+.sortbar{display:flex;gap:6px;padding:0 16px 6px;align-items:center}
+.sortbar span{font-size:11px;color:var(--m)}
+.sb{padding:4px 10px;border-radius:16px;border:1.5px solid var(--border);background:var(--card);font-size:11px;font-weight:600;color:var(--m);cursor:pointer}
+.sb.on{background:var(--a);color:#fff;border-color:var(--a)}
+
+/* DETAIL */
+.d-hero{padding:14px 16px;background:var(--card);border-bottom:1.5px solid var(--border);margin-bottom:8px}
+.d-amt{font-size:30px;font-weight:700;letter-spacing:-.8px;margin-bottom:4px}
 .d-amt.r{color:var(--r)}.d-amt.g{color:var(--g)}
-.d-bd{font-size:13px;color:var(--m);max-width:280px;margin:0 auto;line-height:1.5}
+.d-bd{font-size:11px;color:var(--m);line-height:1.7;word-break:break-word}
+.d-meta{font-size:12px;color:var(--m);margin-top:6px;display:flex;gap:12px}
+.d-meta span{display:flex;align-items:center;gap:3px}
 
-.action-row{display:flex;gap:10px;padding:0 16px 16px}
-.act-btn{flex:1;padding:12px;border-radius:12px;border:none;background:var(--card);font-size:14px;font-weight:600;cursor:pointer;color:var(--t);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;gap:6px}
-.act-btn.green{background:var(--g);color:#fff}
+.action-row{display:flex;gap:8px;padding:0 16px 10px}
+.act-btn{flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);font-size:13px;font-weight:600;cursor:pointer;color:var(--t)}
+.act-btn.green{background:#d1fae5;border-color:#a7f3d0;color:#065f46}
+.act-btn.red{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
 
-/* TRANSACTIONS */
+/* TX */
 .txw{padding:0 16px 140px}
-.tx{display:flex;align-items:center;gap:14px;padding:14px;background:var(--card);border-radius:12px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer}
-.tx-ic{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
-.tx-ic.d{background:rgba(255,59,48,0.1);color:var(--r)}
-.tx-ic.c{background:rgba(52,199,89,0.1);color:var(--g)}
+.tx{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.tx:last-child{border-bottom:none}
+.tx-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tx-ic.d{background:#fef2f2}.tx-ic.c{background:#f0fdf4}
 .tx-info{flex:1;min-width:0}
-.tx-a{font-size:14px;font-weight:700}
-.tx-m{font-size:12px;color:var(--m);margin-top:2px}
-.tx-del{background:none;border:none;color:var(--m);font-size:20px;cursor:pointer;padding:0 8px;opacity:0.4}
-.tx-del:hover{opacity:1;color:var(--r)}
+.tx-a{font-size:13px;font-weight:700}
+.tx-m{font-size:11px;color:var(--m);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-del{background:none;border:none;color:#ddd;font-size:18px;cursor:pointer;padding:4px 6px}
+.tx-del:active{color:var(--r)}
 
-/* ACTION BAR BOTTOM */
-.addbar{padding:12px 16px 30px;background:var(--card);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;width:100%;z-index:9;display:flex;gap:8px;box-shadow:0 -4px 20px rgba(0,0,0,0.02)}
-.addbar input{background:var(--bg);border:none;border-radius:10px;padding:12px;font-size:14px;color:var(--t);outline:none}
-.ai{width:110px!important}
-.addbtn{width:46px;background:var(--t);color:var(--bg);border:none;border-radius:10px;font-size:20px;font-weight:600;cursor:pointer}
+/* ADD BAR */
+.addbar{padding:8px 16px;background:var(--card);border-top:1.5px solid var(--border);position:sticky;bottom:0;z-index:9;display:flex;gap:7px}
+.addbar input{flex:1;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;font-size:14px;color:var(--t);outline:none}
+.addbar input:focus{border-color:#bbb}
+.ai{width:100px;flex:none!important}
+.addbtn{padding:10px 14px;background:var(--a);color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer}
 
-/* FAB & MODALS */
-.fab{position:fixed;bottom:100px;right:20px;width:52px;height:52px;border-radius:50%;background:var(--t);color:var(--bg);font-size:26px;border:none;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,0.15);z-index:8;display:flex;align-items:center;justify-content:center}
-.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);z-index:40;align-items:flex-end}
+/* FAB */
+.fab{position:fixed;bottom:22px;right:16px;width:50px;height:50px;border-radius:50%;background:var(--a);color:#fff;font-size:24px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:20;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.93)}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;align-items:flex-end}
 .mbg.on{display:flex}
-.modal{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 16px 40px;box-shadow: 0 -10px 30px rgba(0,0,0,0.05);animation: slideUp 0.25s ease-out}
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.mbar{width:36px;height:4px;border-radius:2px;background:var(--bg);margin:0 auto 16px}
-.mt{font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:-0.3px}
-.modal input{width:100%;padding:12px 14px;background:var(--bg);border:none;border-radius:12px;font-size:15px;color:var(--t);outline:none;margin-bottom:10px}
-.msub{width:100%;padding:14px;background:var(--t);color:var(--bg);border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
-.empty{text-align:center;padding:60px 20px;color:var(--m);font-size:14px}
+.modal{width:100%;background:var(--card);border-radius:18px 18px 0 0;padding:18px 16px 38px}
+.mbar{width:32px;height:3px;border-radius:2px;background:var(--border);margin:0 auto 14px}
+.mt{font-size:17px;font-weight:700;margin-bottom:12px}
+.modal input{width:100%;padding:11px 13px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;font-size:15px;color:var(--t);outline:none;margin-bottom:9px}
+.modal input:focus{border-color:#bbb}
+.msub{width:100%;padding:12px;background:var(--a);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
+
+.empty{text-align:center;padding:50px 20px;color:var(--m);font-size:14px}
+.ei{font-size:36px;margin-bottom:10px}
 </style>
 </head>
 <body>
 
+<!-- LIST -->
 <div id="vl" class="view active">
   <div class="nav">
     <div class="nav-row">
       <div><div class="nav-title">Qarzdorlar</div><div class="nav-sub" id="lsub">Yuklanmoqda…</div></div>
-      <button class="icon-btn" onclick="exportTxt()">📥</button>
+      <div class="nav-actions">
+        <button class="icon-btn" onclick="exportTxt()" title="Export">⬇️</button>
+      </div>
     </div>
+    <div class="search"><input id="sq" type="text" placeholder="Qidirish… (lotin/kirill)" oninput="onSrch()" autocomplete="off"><button class="clr" onclick="clrSrch()">✕</button></div>
   </div>
-  <div class="search"><input id="sq" type="text" placeholder="Qidirish (ism, latin/kirill)…" oninput="onSrch()" autocomplete="off"></div>
   <div class="stats" id="stats"></div>
   <div class="ftabs">
     <button class="ft on" onclick="setF('all',this)">Hammasi</button>
     <button class="ft" onclick="setF('high',this)">≥200K</button>
     <button class="ft" onclick="setF('mid',this)">50–200K</button>
     <button class="ft" onclick="setF('low',this)">&lt;50K</button>
-    <button class="ft" onclick="setF('paid',this)">To'langan</button>
+    <button class="ft" onclick="setF('paid',this)">To'langan ✓</button>
   </div>
   <div class="sortbar">
     <span>Saralash:</span>
-    <button class="sb on" onclick="setSort('amt',this)">Summa</button> · 
-    <button class="sb" onclick="setSort('name',this)">Ism</button> · 
-    <button class="sb" onclick="setSort('tx',this)">Amallar</button>
+    <button class="sb on" onclick="setSort('amt',this)">Summa</button>
+    <button class="sb" onclick="setSort('name',this)">Ism</button>
+    <button class="sb" onclick="setSort('tx',this)">Tranzaksiya</button>
   </div>
-  <div class="lst" id="plist"></div>
+  <div class="lst" id="plist"><div class="empty"><div class="ei">📋</div>Yuklanmoqda…</div></div>
   <button class="fab" onclick="openM()">+</button>
 </div>
 
+<!-- DETAIL -->
 <div id="vd" class="view">
   <div class="nav">
-    <div class="nav-row" style="justify-content: flex-start;">
+    <div class="nav-row">
       <button class="nav-back" onclick="closeD()">←</button>
-      <div style="flex:1"><div class="nav-title" id="dn" style="font-size:18px"></div></div>
-      <div style="display:flex;gap:8px">
-        <button class="icon-btn" onclick="shareDebt()" title="Ulashish">🚀</button>
-        <button class="icon-btn" onclick="deleteP()" style="color:var(--r)">🗑</button>
-      </div>
+      <div style="flex:1"><div class="nav-title" id="dn" style="font-size:16px"></div></div>
+      <button class="icon-btn" onclick="deleteP()" style="color:var(--r)">🗑</button>
     </div>
   </div>
   <div class="d-hero">
     <div class="d-amt" id="damt"></div>
     <div class="d-bd" id="dbd"></div>
+    <div class="d-meta" id="dmeta"></div>
   </div>
   <div class="action-row">
-    <button class="act-btn green" onclick="markPaid()">✓ To'liq yopish</button>
-    <button class="act-btn" onclick="partPay()"> Qisman o'chirish</button>
+    <button class="act-btn green" onclick="markPaid()">✓ To'liq to'landi</button>
+    <button class="act-btn" onclick="partPay()">⬇ Qisman to'lash</button>
   </div>
-  <div class="txw" id="txlist"></div>
+  <div class="txw" id="txlist"><div class="empty">Yuklanmoqda…</div></div>
   <div class="addbar">
     <input class="ai" id="iamt" type="number" placeholder="Summa" inputmode="numeric">
-    <input id="inote" type="text" placeholder="Izoh yozish…">
+    <input id="inote" type="text" placeholder="Izoh (ixtiyoriy)">
     <button class="addbtn" onclick="addTx()">+</button>
   </div>
 </div>
 
+<!-- MODAL -->
 <div class="mbg" id="modal" onclick="mbgClk(event)">
   <div class="modal">
     <div class="mbar"></div>
-    <div class="mt">Yangi mijoz sahifasi</div>
+    <div class="mt">Yangi qarzdor</div>
     <input id="mn" type="text" placeholder="Ism (Zulfiya xola)">
-    <input id="ma" type="number" placeholder="Boshlang'ich qarz summasi (ixtiyoriy)" inputmode="numeric">
-    <button class="msub" onclick="addP()">Saqlash</button>
+    <input id="ma" type="number" placeholder="Boshlang'ich summa (ixtiyoriy)" inputmode="numeric">
+    <button class="msub" onclick="addP()">Qo'shish</button>
   </div>
 </div>
 
@@ -182,33 +189,35 @@ const WHO=me?(me.first_name+(me.last_name?' '+me.last_name:'')):'Sotuvchi';
 
 let P=[],cid=null,ctot=0,cbd=[],filt='all',srch='',srt='amt';
 
-const fmt=n=>Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
+const fmt=n=>Number(n).toLocaleString('ru-RU');
 const fmtS=n=>fmt(n)+" so'm";
-function fmtD(s){if(!s)return '';const d=new Date(s);return d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
-function av(t){return t>0?(t>=200000?'r':'o'):'g';}
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function fmtD(dt){if(!dt)return'';const d=new Date(dt.endsWith('Z')?dt:dt+'Z');return d.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
+function av(t){if(t>=200000)return'r';if(t>=100000)return'o';if(t>=50000)return'y';if(t>0)return'g';return'x';}
 function ini(n){return n.trim().split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');}
-function esc(s){if(!s)return '';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-const C2L={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ж':'j','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','х':'x','ц':'ts','ч':'ch','ш':'sh','ю':'yu','я':'ya','қ':'q','ғ':"g'",'ҳ':'h','ў':"o'"};
-function normalize(s){
-  let str = s.toLowerCase().replace(/x/g, 'h').replace(/[‘’'’`ʼ]/g, '');
-  return str.split('').map(c=>C2L[c]||c).join('');
-}
+// Smart search
+const C2L={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ж':'j','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'x','ц':'ts','ч':'ch','ш':'sh','ю':'yu','я':'ya','қ':'q','ғ':"g'",'ҳ':'h','ў':"o'"};
+const L2C={'a':'а','b':'б','v':'в','g':'г','d':'д','e':'е','j':'ж','z':'з','i':'и','y':'й','k':'к','l':'л','m':'м','n':'н','o':'о','p':'п','r':'р','s':'с','t':'т','u':'у','f':'ф','x':'х','q':'қ','h':'ҳ'};
+function c2l(s){return s.split('').map(c=>C2L[c]||c).join('');}
+function l2c(s){return s.split('').map(c=>L2C[c]||c).join('');}
 function match(name,q){
   if(!q)return true;
-  return normalize(name).includes(normalize(q));
+  const n=name.toLowerCase(),ql=q.toLowerCase();
+  return n.includes(ql)||c2l(n).includes(ql)||l2c(n).includes(ql)||c2l(n).includes(c2l(ql));
 }
 
 function bd(parts){
-  const pos=parts.filter(x=>x>0); if(!pos.length)return'';
+  const pos=parts.filter(x=>x>0);
+  if(!pos.length)return'';
   if(pos.length===1)return fmtS(pos[0]);
-  return pos.slice(0,6).map(x=>fmt(x)).join(' + ')+(pos.length>6?' +…':'')+" = "+fmtS(pos.reduce((a,b)=>a+b,0));
+  const shown=pos.slice(0,8).map(x=>fmt(x)).join(' + ');
+  return shown+(pos.length>8?` +…(${pos.length} ta)`:'')+" = "+fmtS(pos.reduce((a,b)=>a+b,0));
 }
 
 const api={
   get:u=>fetch(u).then(r=>r.json()),
   post:(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),
-  put:(u,b)=>fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),
   del:u=>fetch(u,{method:'DELETE'}),
 };
 
@@ -218,39 +227,47 @@ async function load(){
   try{
     const[ps,st]=await Promise.all([api.get('/api/persons'),api.get('/api/stats')]);
     P=ps; renderStats(st); renderList();
-  }catch{document.getElementById('plist').innerHTML='<div class="empty">Xatolik yuz berdi</div>';}
+  }catch{document.getElementById('plist').innerHTML='<div class="empty"><div class="ei">⚠️</div>Xato</div>';}
 }
 
 function renderStats(s){
-  document.getElementById('lsub').textContent=`Jami ${P.length} mijoz`;
+  document.getElementById('lsub').textContent=`${P.length} nafar`;
   document.getElementById('stats').innerHTML=`
-    <div class="sc"><div class="sc-l">Umumiy Qarz</div><div class="sc-v r">${fmt(s.total||0)}</div></div>
-    <div class="sc"><div class="sc-l">Faol qarzlar</div><div class="sc-v">${s.active||0}</div></div>
-    <div class="sc"><div class="sc-l">Yopilganlar</div><div class="sc-v g">${s.paid||0}</div></div>`;
+    <div class="sc"><div class="sc-l">Umumiy qarz</div><div class="sc-v r">${fmt(s.total||0)}</div></div>
+    <div class="sc"><div class="sc-l">Faol qarzdor</div><div class="sc-v">${s.active||0}</div></div>
+    <div class="sc"><div class="sc-l">To'langan</div><div class="sc-v g">${s.paid||0}</div></div>
+    ${(s.top||[]).map((t,i)=>`<div class="sc"><div class="sc-l">${['🥇','🥈','🥉'][i]||'#'} Top</div><div class="sc-v" style="font-size:12px">${esc(t.name)}</div></div>`).join('')}`;
+}
+
+function applyFilt(data){
+  let d=data.filter(p=>match(p.name,srch));
+  if(filt==='high')d=d.filter(p=>p.total>=200000);
+  else if(filt==='mid')d=d.filter(p=>p.total>=50000&&p.total<200000);
+  else if(filt==='low')d=d.filter(p=>p.total>0&&p.total<50000);
+  else if(filt==='paid')d=d.filter(p=>p.total<=0);
+  if(srt==='name')d=[...d].sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+  else if(srt==='tx')d=[...d].sort((a,b)=>b.tx_count-a.tx_count);
+  return d;
 }
 
 function renderList(){
-  let data=P.filter(p=>match(p.name,srch));
-  if(filt==='high')data=data.filter(p=>p.total>=200000);
-  else if(filt==='mid')data=data.filter(p=>p.total>=50000&&p.total<200000);
-  else if(filt==='low')data=data.filter(p=>p.total>0&&p.total<50000);
-  else if(filt==='paid')data=data.filter(p=>p.total<=0);
-  
-  if(srt='name'===srt)data.sort((a,b)=>a.name.localeCompare(b.name,'ru'));
-  else if(srt==='tx')data.sort((a,b)=>b.tx_count-a.tx_count);
-  else data.sort((a,b)=>b.total-a.total);
-
+  const data=applyFilt(P);
   const el=document.getElementById('plist');
-  if(!data.length){el.innerHTML='<div class="empty">Natija topilmadi</div>';return;}
+  if(!data.length){el.innerHTML='<div class="empty"><div class="ei">🔍</div>Natija topilmadi</div>';return;}
   el.innerHTML=data.map((p,i)=>{
     const paid=p.total<=0;
+    const breakdown=bd(p.breakdown||[]);
+    const rank=srt==='amt'&&i<3&&!srch&&filt==='all'?`<span class="badge top">${['1','2','3'][i]}</span>`:'';
     return`<div class="pi" onclick="openD(${p.id})">
       <div class="av ${av(p.total)}">${esc(ini(p.name))}</div>
       <div class="pi-info">
-        <div class="pi-name">${esc(p.name)}${paid?'<span class="badge paid">✓ Yopilgan</span>':''}</div>
-        <div class="pi-bd">${bd(p.breakdown||[])||p.tx_count+' ta amal'}</div>
+        <div class="pi-name">${esc(p.name)}${rank}${paid?'<span class="badge paid">✓</span>':''}</div>
+        <div class="pi-bd">${breakdown||p.tx_count+' ta tranzaksiya'}</div>
       </div>
-      <div class="pi-amt" style="color:${paid?'var(--g)':'var(--r)'}">${fmt(p.total)}</div>
+      <div class="pi-r">
+        <div class="pi-amt" style="color:${paid?'var(--g)':'var(--r)'}">${fmt(p.total)}</div>
+        <div class="pi-u">so'm</div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -258,123 +275,154 @@ function renderList(){
 function setF(f,btn){filt=f;document.querySelectorAll('.ft').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderList();}
 function setSort(s,btn){srt=s;document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderList();}
 function onSrch(){srch=document.getElementById('sq').value;renderList();}
+function clrSrch(){document.getElementById('sq').value='';srch='';renderList();}
 
 async function openD(id){
   cid=id; const p=P.find(x=>x.id===id); if(!p)return;
   ctot=p.total; cbd=p.breakdown||[];
   document.getElementById('dn').textContent=p.name;
-  updHero(); sv('vd');
+  updHero();
+  document.getElementById('iamt').value='';
+  document.getElementById('inote').value='';
+  sv('vd');
+  if(tg?.BackButton){tg.BackButton.show();tg.BackButton.onClick(closeD);}
   await loadTx(id);
 }
 
 function updHero(){
+  const paid=ctot<=0;
   document.getElementById('damt').textContent=fmtS(ctot);
-  document.getElementById('damt').className='d-amt '+(ctot<=0?'g':'r');
+  document.getElementById('damt').className='d-amt '+(paid?'g':'r');
   document.getElementById('dbd').textContent=bd(cbd);
+  const p=P.find(x=>x.id===cid);
+  document.getElementById('dmeta').innerHTML=p?`<span>📊 ${p.tx_count} ta</span>`:'';
 }
 
-function closeD(){sv('vl');load();}
+function closeD(){
+  if(tg?.BackButton)tg.BackButton.hide();
+  sv('vl');
+  api.get('/api/persons').then(d=>{P=d;renderList();}).catch(()=>{});
+  api.get('/api/stats').then(s=>renderStats(s)).catch(()=>{});
+}
 
 async function loadTx(id){
   const el=document.getElementById('txlist');
+  el.innerHTML='<div class="empty">Yuklanmoqda…</div>';
   try{
     const data=await api.get(`/api/persons/${id}/transactions`);
-    if(!data.length){el.innerHTML='<div class="empty">Tarix bo\'sh</div>';return;}
+    if(!data.length){el.innerHTML='<div class="empty"><div class="ei">📭</div>Tranzaksiya yo\'q</div>';return;}
     el.innerHTML=data.map(tx=>{
       const cr=tx.amount<0;
-      return`<div class="tx" onclick="editNote(${tx.id},'${esc(tx.note||'')}')">
-        <div class="tx-ic ${cr?'c':'d'}">${cr?'✓':'$'}</div>
+      return`<div class="tx" id="tx${tx.id}">
+        <div class="tx-ic ${cr?'c':'d'}">${cr?'✅':'💸'}</div>
         <div class="tx-info">
-          <div class="tx-a" style="color:${cr?'var(--g)':'var(--r)'}">${cr?fmt(-tx.amount):'+'+fmt(tx.amount)} so'm</div>
-          <div class="tx-m">${esc(tx.note||'Izohsiz')} · <span style="opacity:0.5">${fmtD(tx.created_at)}</span></div>
+          <div class="tx-a" style="color:${cr?'var(--g)':'var(--r)'}">${cr?'+'+fmt(-tx.amount):'−'+fmt(tx.amount)} so'm</div>
+          <div class="tx-m">${[tx.note,tx.added_by,fmtD(tx.created_at)].filter(Boolean).join(' · ')}</div>
         </div>
-        <button class="tx-del" onclick="event.stopPropagation();delTx(${tx.id},${tx.amount})">×</button>
+        <button class="tx-del" onclick="delTx(${tx.id},${tx.amount})">×</button>
       </div>`;
     }).join('');
-  }catch{el.innerHTML='<div class="empty">Xato yuz berdi</div>';}
+  }catch{el.innerHTML='<div class="empty">Xato</div>';}
 }
 
 async function addTx(){
   const amt=Number(document.getElementById('iamt').value);
   const note=document.getElementById('inote').value.trim();
-  if(!amt||amt<=0)return;
+  if(!amt||amt<=0){document.getElementById('iamt').focus();return;}
   try{
-    await api.post('/api/transactions',{person_id:cid,amount:amt,note:note||null,added_by:WHO});
+    const res=await api.post('/api/transactions',{person_id:cid,amount:amt,note:note||null,added_by:WHO});
+    if(!res.ok)throw 0;
     document.getElementById('iamt').value='';document.getElementById('inote').value='';
-    ctot+=amt; cbd.push(amt); updHero(); await loadTx(cid);
-  }catch{alert('Xatolik yuz berdi');}
-}
-
-async function editNote(tid, oldNote){
-  const n = prompt("Izohni o'zgartirish:", oldNote);
-  if(n === null) return;
-  try {
-    await api.put(`/api/transactions/${tid}`, {note: n});
-    await loadTx(cid);
-  } catch { alert('Xato'); }
+    ctot+=amt;cbd.push(amt);
+    const p=P.find(x=>x.id===cid);if(p){p.total=ctot;p.tx_count+=1;p.breakdown=cbd;}
+    updHero();await loadTx(cid);
+  }catch{alert('Xato');}
 }
 
 async function delTx(txid,amt){
-  if(!confirm("O'chirilsinmi?"))return;
+  if(!confirm("O'chirish?"))return;
   try{
     await api.del(`/api/transactions/${txid}`);
-    ctot-=amt; if(amt>0){const i=cbd.lastIndexOf(amt);if(i>-1)cbd.splice(i,1);}
-    updHero(); await loadTx(cid);
-  }catch{alert('Ruxsat berilmadi');}
+    document.getElementById(`tx${txid}`)?.remove();
+    ctot-=amt;if(amt>0){const i=cbd.lastIndexOf(amt);if(i>-1)cbd.splice(i,1);}
+    const p=P.find(x=>x.id===cid);if(p){p.total=ctot;p.tx_count-=1;}
+    updHero();
+    const el=document.getElementById('txlist');
+    if(!el.querySelector('.tx'))el.innerHTML='<div class="empty"><div class="ei">📭</div>Tranzaksiya yo\'q</div>';
+  }catch{alert('Xato');}
 }
 
 async function markPaid(){
-  if(ctot<=0||!confirm("Qarz to'liq yopilsinmi?"))return;
+  if(!confirm("To'liq to'landi deb belgilash?"))return;
+  if(ctot<=0){alert("Qarz 0");return;}
   try{
-    await api.post('/api/transactions',{person_id:cid,amount:-ctot,note:"To'liq yopildi",added_by:WHO});
-    ctot=0; cbd=[]; updHero(); await loadTx(cid);
+    await api.post('/api/transactions',{person_id:cid,amount:-ctot,note:"To'liq to'landi",added_by:WHO});
+    ctot=0;cbd=[];
+    const p=P.find(x=>x.id===cid);if(p){p.total=0;p.breakdown=[];}
+    updHero();await loadTx(cid);
   }catch{alert('Xato');}
 }
 
 async function partPay(){
-  const s=prompt("To'langan summa (so'm):"); if(!s)return;
-  const amt=Number(s); if(!amt||amt<=0)return;
+  const s=prompt("Qancha to'ladi? (so'm)");
+  if(!s)return;
+  const amt=Number(s);
+  if(!amt||amt<=0){alert("Noto'g'ri summa");return;}
   try{
     await api.post('/api/transactions',{person_id:cid,amount:-amt,note:"Qisman to'lov",added_by:WHO});
-    ctot-=amt; updHero(); await loadTx(cid);
+    ctot-=amt;
+    const p=P.find(x=>x.id===cid);if(p){p.total=ctot;}
+    updHero();await loadTx(cid);
   }catch{alert('Xato');}
 }
 
 async function deleteP(){
-  if(!confirm("Mijoz o'chirilsinmi? Barcha tarixi yo'qoladi."))return;
-  try{await api.del(`/api/persons/${cid}`); closeD();}catch{alert('Xato');}
-}
-
-function shareDebt(){
   const p=P.find(x=>x.id===cid);
-  const text = `👤 Mijoz: ${p.name}\n💰 Umumiy qarz: ${fmtS(ctot)}\n📊 Holat: ${ctot>0?'Faol qarz':'Qarz yo\'q'}\n\nTizim orqali hisoblandi.`;
-  navigator.clipboard.writeText(text).then(()=>alert('Ma\'lumot nusxalandi! Mijozga yuborishingiz mumkin.'));
+  if(!confirm(`"${p?.name}" ni o'chirish? Barcha ma'lumotlar yo'qoladi.`))return;
+  try{
+    await api.del(`/api/persons/${cid}`);
+    P=P.filter(x=>x.id!==cid);
+    closeD();
+  }catch{alert('Xato');}
 }
 
 function exportTxt(){
   const active=P.filter(p=>p.total>0);
-  const lines=active.map(p=>`${p.name}: ${fmtS(p.total)}`);
-  lines.push('','Jami active qarzlar: '+fmtS(active.reduce((s,p)=>s+p.total,0)));
+  const total=active.reduce((s,p)=>s+p.total,0);
+  const lines=active.map(p=>{
+    const bds=(p.breakdown||[]).filter(x=>x>0);
+    return bds.length>1?`${p.name}: ${bds.map(fmt).join(' + ')} = ${fmtS(p.total)}`:`${p.name}: ${fmtS(p.total)}`;
+  });
+  lines.push('','Jami: '+fmtS(total));
   const blob=new Blob([lines.join('\n')],{type:'text/plain'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`qarzdorlar.txt`; a.click();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`qarzdorlar_${new Date().toLocaleDateString('ru-RU').replace(/\./g,'-')}.txt`;
+  a.click();
 }
 
-function openM(){document.getElementById('mn').value='';document.getElementById('ma').value='';document.getElementById('modal').classList.add('on');}
+function openM(){document.getElementById('mn').value='';document.getElementById('ma').value='';document.getElementById('modal').classList.add('on');setTimeout(()=>document.getElementById('mn').focus(),80);}
 function mbgClk(e){if(e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('on');}
 
 async function addP(){
   const name=document.getElementById('mn').value.trim();
   const amt=Number(document.getElementById('ma').value)||0;
-  if(!name)return;
+  if(!name){document.getElementById('mn').focus();return;}
   try{
     const res=await api.post('/api/persons',{name});
-    if(!res.ok) { alert('Mijoz qo\'shishda xatolik (balki bu ism bordur)'); return; }
+    if(!res.ok){const e=await res.json();alert(e.detail||'Xato');return;}
     const per=await res.json();
-    if(amt>0)await api.post('/api/transactions',{person_id:per.id,amount:amt,note:"Boshlang'ich yuklash",added_by:WHO});
-    document.getElementById('modal').classList.remove('on'); load();
-  }catch{alert('Mijozni qo\'shishda xatolik');}
+    if(amt>0)await api.post('/api/transactions',{person_id:per.id,amount:amt,note:"Boshlang'ich qarz",added_by:WHO});
+    document.getElementById('modal').classList.remove('on');
+    await load();
+  }catch{alert('Xato');}
 }
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(document.getElementById('vd').classList.contains('active'))addTx();
+  if(document.getElementById('modal').classList.contains('on'))addP();
+});
 
 load();
 </script>
