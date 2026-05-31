@@ -68,14 +68,12 @@ async def send_button(chat_id, thread_id=None):
         "chat_id": chat_id,
         "text": "👇 Тугмани босиб реестрни очинг:",
         "reply_markup": {
-            "inline_keyboard": [
-                [
-                    {
-                        "text": "📋 Open",
-                        "url": "https://telegram-qarz-bot.onrender.com"
-                    }
-                ]
-            ]
+            "inline_keyboard": [[{
+                "text": "📋 Qarzdorlar ro'yxatini ochish",
+                "web_app": {
+                    "url": WEBAPP_URL
+                }
+            }]]
         }
     }
 
@@ -83,7 +81,10 @@ async def send_button(chat_id, thread_id=None):
         payload["message_thread_id"] = thread_id
 
     async with httpx.AsyncClient() as client:
-        r = await client.post(f"{TG_API}/sendMessage", json=payload)
+        r = await client.post(
+            f"{TG_API}/sendMessage",
+            json=payload
+        )
         print("SEND RESULT:", r.text)
 
 async def send_denied(chat_id, thread_id=None):
