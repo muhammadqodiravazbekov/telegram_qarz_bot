@@ -40,6 +40,9 @@ async def telegram_webhook(request: Request):
         return JSONResponse({"ok": True})
 
     message = data.get("message") or data.get("channel_post")
+    print("FULL UPDATE:", data)
+    print("CHAT ID:", message.get("chat", {}).get("id"))
+    print("TEXT:", message.get("text"))
     if not message:
         return JSONResponse({"ok": True})
 
