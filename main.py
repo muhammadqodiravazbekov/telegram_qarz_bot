@@ -66,13 +66,18 @@ async def telegram_webhook(request: Request):
 async def send_button(chat_id, thread_id=None):
     payload = {
         "chat_id": chat_id,
-        "text": "👇 Тугмани босиб реестрни очинг:",
-        "reply_markup": {"inline_keyboard": [[{"text": "📋 Qarzdorlar ro'yxatini ochish", "web_app": {"url": WEBAPP_URL}}]]}
+        "text": "TEST MESSAGE"
     }
+
     if thread_id:
         payload["message_thread_id"] = thread_id
+
     async with httpx.AsyncClient() as client:
-        await client.post(f"{TG_API}/sendMessage", json=payload)
+        r = await client.post(
+            f"{TG_API}/sendMessage",
+            json=payload
+        )
+        print("SEND RESULT:", r.text)
 
 async def send_denied(chat_id, thread_id=None):
     payload = {"chat_id": chat_id, "text": "❌ Ruxsat yo'q. Bu bot faqat Mini Market guruhi uchun."}
