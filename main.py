@@ -1,13 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
-import sqlite3, os
+import sqlite3, os, httpx
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-DB_PATH = os.environ.get("DB_PATH", "debt.db")
+
+DB_PATH    = os.environ.get("DB_PATH", "debt.db")
+BOT_TOKEN  = os.environ.get("BOT_TOKEN", "8912188749:AAGCVslE1Ry9kHhOMnpb7ejV_eIF6O37x4w")
+WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://telegram-qarz-bot.onrender.com")
+TG_API     = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -21,6 +26,51 @@ def init_db():
     conn.commit(); conn.close()
 
 init_db()
+
+@app.get("/bot")
+async def bot_get():
+    return JSONResponse({"ok": True})
+
+@app.post("/bot")
+async def telegram_webhook(request: Request):
+    try:
+        data = await request.json()
+    except:
+        return JSONResponse({"ok": True})
+    
+    message = data.get("message") or data.get("channel_post")
+    if not message:
+        return JSONResponse({"ok": True})
+    
+    chat_id = message.get("chat", {}).get("id")
+    text    = message.get("text", "")
+
+    if text in ("/start", "/royhati"):
+        await send_button(chat_id)
+    elif text == "/jami":
+        await send_jami(chat_id)
+
+    return JSONResponse({"ok": True})
+
+async def send_button(chat_id):
+    async with httpx.AsyncClient() as client:
+        await client.post(f"{TG_API}/sendMessage", json={
+            "chat_id": chat_id,
+            "text": "👇 Тугмани босиб реестрни очинг:",
+            "reply_markup": {"inline_keyboard": [[{"text": "📋 Qarzdorlar ro'yxatini ochish", "web_app": {"url": WEBAPP_URL}}]]}
+        })
+
+async def send_jami(chat_id):
+    conn = get_db()
+    row = conn.execute("SELECT COUNT(DISTINCT person_id), COALESCE(SUM(amount),0) FROM transactions").fetchone()
+    conn.close()
+    count, total = row[0], int(row[1])
+    async with httpx.AsyncClient() as client:
+        await client.post(f"{TG_API}/sendMessage", json={
+            "chat_id": chat_id,
+            "text": f"📊 *Реестр хулосаси*\n\n👥 Қарздорлар: *{count} нафар*\n💰 Умумий қарз: *{total:,} сўм*".replace(",", " "),
+            "parse_mode": "Markdown"
+        })
 
 class PersonCreate(BaseModel):
     name: str
