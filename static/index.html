@@ -177,7 +177,6 @@ body{background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSyste
 <script>
 const tg=window.Telegram?.WebApp;
 tg?.expand();tg?.ready();
-const initData = tg?.initData || "";
 const me=tg?.initDataUnsafe?.user;
 const WHO=me?(me.first_name+(me.last_name?' '+me.last_name:'')):'Sotuvchi';
 
@@ -185,12 +184,12 @@ let P=[],cid=null,ctot=0,cbd=[],filt='all',srch='',srt='amt';
 
 const fmt=n=>Number(n).toLocaleString('ru-RU').replace(/,/g,' ');
 const fmtS=n=>fmt(n)+" so'm";
-function fmtD(dt){if(!dt)return'';const d=new Date(dt.endsWith('Z')?dt:dt+'Z');return d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
+function fmtD(s){if(!s)return '';const d=new Date(s);return d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
 function av(t){return t>0?(t>=200000?'r':'o'):'g';}
 function ini(n){return n.trim().split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');}
+function esc(s){if(!s)return '';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 const C2L={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ж':'j','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','х':'x','ц':'ts','ч':'ch','ш':'sh','ю':'yu','я':'ya','қ':'q','ғ':"g'",'ҳ':'h','ў':"o'"};
-const L2C={'a':'а','b':'б','v':'в','g':'г','d':'д','e':'е','j':'ж','z':'з','i':'и','y':'й','k':'к','l':'л','m':'м','n':'н','o':'о','p':'п','r':'р','s':'с','t':'т','u':'у','f':'ф','x':'х','h':'ҳ','q':'қ'};
 function normalize(s){
   let str = s.toLowerCase().replace(/x/g, 'h').replace(/[‘’'’`ʼ]/g, '');
   return str.split('').map(c=>C2L[c]||c).join('');
@@ -208,9 +207,9 @@ function bd(parts){
 
 const api={
   get:u=>fetch(u).then(r=>r.json()),
-  post:(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json','X-TG-Init-Data':initData},body:JSON.stringify(b)}),
-  put:(u,b)=>fetch(u,{method:'PUT',headers:{'Content-Type':'application/json','X-TG-Init-Data':initData},body:JSON.stringify(b)}),
-  del:u=>fetch(u,{method:'DELETE',headers:{'X-TG-Init-Data':initData}}),
+  post:(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),
+  put:(u,b)=>fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),
+  del:u=>fetch(u,{method:'DELETE'}),
 };
 
 function sv(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
@@ -237,7 +236,7 @@ function renderList(){
   else if(filt==='low')data=data.filter(p=>p.total>0&&p.total<50000);
   else if(filt==='paid')data=data.filter(p=>p.total<=0);
   
-  if(srt==='name')data.sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+  if(srt='name'===srt)data.sort((a,b)=>a.name.localeCompare(b.name,'ru'));
   else if(srt==='tx')data.sort((a,b)=>b.tx_count-a.tx_count);
   else data.sort((a,b)=>b.total-a.total);
 
@@ -303,7 +302,7 @@ async function addTx(){
     await api.post('/api/transactions',{person_id:cid,amount:amt,note:note||null,added_by:WHO});
     document.getElementById('iamt').value='';document.getElementById('inote').value='';
     ctot+=amt; cbd.push(amt); updHero(); await loadTx(cid);
-  }catch{alert('Xavfsizlik xatosi yoki sotuvchi huquqi yo\'q');}
+  }catch{alert('Xatolik yuz berdi');}
 }
 
 async function editNote(tid, oldNote){
@@ -328,7 +327,7 @@ async function markPaid(){
   if(ctot<=0||!confirm("Qarz to'liq yopilsinmi?"))return;
   try{
     await api.post('/api/transactions',{person_id:cid,amount:-ctot,note:"To'liq yopildi",added_by:WHO});
-    ctot=0; cbd=[]; Lauren=0; updHero(); await loadTx(cid);
+    ctot=0; cbd=[]; updHero(); await loadTx(cid);
   }catch{alert('Xato');}
 }
 
@@ -370,6 +369,7 @@ async function addP(){
   if(!name)return;
   try{
     const res=await api.post('/api/persons',{name});
+    if(!res.ok) { alert('Mijoz qo\'shishda xatolik (balki bu ism bordur)'); return; }
     const per=await res.json();
     if(amt>0)await api.post('/api/transactions',{person_id:per.id,amount:amt,note:"Boshlang'ich yuklash",added_by:WHO});
     document.getElementById('modal').classList.remove('on'); load();
